@@ -1,0 +1,53 @@
+name: Build and Release XPI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Generate version number
+      id: version
+      run: |
+        echo "VERSION=$(date +'%Y.%m.%d.%H%M')" >> $GITHUB_OUTPUT
+
+    - name: Update manifest.json
+      run: |
+        sed -i 's/"version": ".*"/"version": "${{ steps.version.outputs.VERSION }}"/' sci-hub-addon/manifest.json
+
+    - name: Zip add-on contents
+      run: |
+        cd sci-hub-addon
+        zip -r ../sci-hub-addon.zip *
+
+    - name: Rename zip to xpi
+      run: mv sci-hub-addon.zip sci-hub-addon.xpi
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        release_name: Release ${{ steps.version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./sci-hub-addon.xpi
+        asset_name: sci-hub-addon-${{ steps.version.outputs.VERSION }}.xpi
+        asset_content_type: application/x-xpinstall
