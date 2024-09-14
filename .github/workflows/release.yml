@@ -31,11 +31,11 @@ jobs:
 
     - name: Update manifest.json version
       run: |
-        sed -i 's/"version": ".*"/"version": "${{ steps.version.outputs.VERSION }}"/' ./sci-hub-addon/manifest.json
+        sed -i 's/"version": ".*"/"version": "${{ steps.version.outputs.VERSION }}"/' /home/runner/work/sci-hub-addon/sci-hub-addon/manifest.json
 
     - name: Build Firefox Add-on (.xpi)
       run: |
-        cd ./sci-hub-addon
+        cd /home/runner/work/sci-hub-addon/sci-hub-addon
         web-ext build --output-file ../sci-hub-addon.xpi --overwrite-dest
 
     - name: Create GitHub Release
@@ -55,6 +55,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./sci-hub-addon.xpi
+        asset_path: /home/runner/work/sci-hub-addon/sci-hub-addon.xpi
         asset_name: sci-hub-addon-${{ steps.version.outputs.VERSION }}.xpi
         asset_content_type: application/x-xpinstall
